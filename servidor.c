@@ -19,7 +19,6 @@ int main(int argc, char** argv){
     int portNum = atoi(argv[1]), serverSock, connectionSock;
     struct sockaddr_in serverSocketAddress; // Server address
     serverSocketAddress.sin_family = AF_INET;
-    //inet_pton(AF_INET, "172.0.0.1", (void*)&address->sin_addr);
     serverSocketAddress.sin_addr.s_addr = htonl(INADDR_ANY);
     serverSocketAddress.sin_port = htons(portNum);
     socklen_t socketSize = sizeof(struct sockaddr_in);
