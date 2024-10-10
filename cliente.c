@@ -6,7 +6,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define MESSAGE_LEN 30
+#define MESSAGE_LEN 1000
 
 int main(int argc, char **argv){
     // Check if the args recieved from the command line are correct
