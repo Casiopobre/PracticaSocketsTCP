@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv){
     // Check if the args recieved from the command line are correct
-    if(argc != 3){
+    if(argc < 3){
         perror("\nIncorrect number of arguments\n");
         exit(EXIT_FAILURE);
     }
