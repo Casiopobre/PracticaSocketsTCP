@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #define PETITIONS_NUM 10
+#define a 10
 
 int main(int argc, char **argv){
     // Check if the args received from the command line are correct
