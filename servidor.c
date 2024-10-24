@@ -39,8 +39,8 @@ int main(int argc, char** argv){
     }
     char serverIP[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &serverSocketAddress.sin_addr, serverIP, INET_ADDRSTRLEN);
-    printf("\n~~ Server IP: %s", serverIP);
-    printf("\n~~ Server Port: %d\n", portNum);
+    //printf("\n~~ Server IP: %s", serverIP);
+    //printf("\n~~ Server Port: %d\n", portNum);
 
     // Set socket as passive so it can listen petitions
     if(listen(serverSock, PETITIONS_NUM) != 0){
