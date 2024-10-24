@@ -49,8 +49,8 @@ int main(int argc, char **argv){
         perror("Erro ao abrir o arquivo\n");
         exit(EXIT_FAILURE);
     }
-    char uFileName[20];
-    for(int i = 0; i < sizeof(argv); i++)
+    char *uFileName = malloc(strlen(argv[1]) * 4);
+    for(int i = 0; i < strlen(argv[1]); i++)
             uFileName[i] = toupper(argv[1][i]);
 
     FILE* uppercaseFile = fopen(uFileName, "w");
@@ -83,12 +83,13 @@ int main(int argc, char **argv){
         }
         recvMessage[bytesReceived] = '\0';
         totalBytesReceived += bytesReceived;
-        fprintf(uppercaseFile, "%s\n", recvMessage);
+        fprintf(uppercaseFile, "%s", recvMessage);
     }
     // Comprobation printfs
     //printf("Bytes sent: %ld\n", totalBytesSent);
     //printf("Bytes received: %ld\n", totalBytesReceived);
 
+    free(uFileName);
     fclose(lowecaseFile);
     fclose(uppercaseFile);
     close(clientSock);
