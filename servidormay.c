@@ -10,6 +10,8 @@
 #define PETITIONS_NUM 10
 #define MESSAGE_LEN 1024
 
+int comClient(int connectionSock);
+
 int main(int argc, char **argv){
     // Check if the args received from the command line are correct
     if(argc < 2){
@@ -48,20 +50,31 @@ int main(int argc, char **argv){
         perror("\nUnable to set socket as passive\n");
         exit(EXIT_FAILURE);
     }
-    // Accept connection
-    connectionSock = accept(serverSock, (struct sockaddr *)&clientSocketAddress, &socketSize);
-    if(connectionSock == -1){
-        perror("\nUnable to accept connection\n");
-        exit(EXIT_FAILURE);
-    }
-    char clientIP[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &clientSocketAddress.sin_addr, clientIP, INET_ADDRSTRLEN);
-        int clientPort = ntohs(clientSocketAddress.sin_port);
-        printf("\n~~ Client IP: %s", clientIP);
-        printf("\n~~ Client Port: %d\n", clientPort);
-
+   
      while(1){
-        // Receive message from client
+         // Accept connection
+        connectionSock = accept(serverSock, (struct sockaddr *)&clientSocketAddress, &socketSize);
+        if(connectionSock == -1){
+            perror("\nUnable to accept connection\n");
+            exit(EXIT_FAILURE);
+        }
+        char clientIP[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &clientSocketAddress.sin_addr, clientIP, INET_ADDRSTRLEN);
+            int clientPort = ntohs(clientSocketAddress.sin_port);
+            printf("\n~~ Client IP: %s", clientIP);
+            printf("\n~~ Client Port: %d\n", clientPort);
+
+            comClient(connectionSock);
+
+        }
+    close(serverSock);
+
+    return 1;
+}
+
+int comClient(int connectionSock){
+    // Receive message from client
+    while(1){
         char receivedMessage[MESSAGE_LEN];
         ssize_t totalBytesReceived = 0;
         ssize_t bytesReceived = recv(connectionSock, receivedMessage, sizeof(receivedMessage), 0);
@@ -70,7 +83,7 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         } else if (bytesReceived == 0){
             perror("Client Disconnected\n");
-            exit(EXIT_FAILURE);
+            return(1);
         }
         receivedMessage[bytesReceived] = '\0';
         //printf("ReceivedBytes: %ld\n", bytesReceived);
@@ -90,15 +103,12 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
         totalBytesSent += bytesSent;
-
-        //Comprobation printfs
-        //printf("Bytes sent: %ld\n", totalBytesSent);
-        //printf("Bytes received: %ld\n", totalBytesReceived);
-
-        // Close the sockets
-        //close(connectionSock);
     }
-    close(serverSock);
+    //Comprobation printfs
+    //printf("Bytes sent: %ld\n", totalBytesSent);
+    //printf("Bytes received: %ld\n", totalBytesReceived);
 
-    return 1;
+    // Close the sockets
+    //close(connectionSock);}
+    
 }
