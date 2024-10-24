@@ -6,15 +6,8 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 #define MESSAGE_LEN 1024
-
-/*
-El funcionamiento debe ser el siguiente: una vez establecida la conexión
-el cliente lee una línea del archivo de entrada y se la envía al servidor
-el servidor se la devuelve al cliente pasada a mayúsculas
-el cliente la escribe en el archivo de salida
-de vuelta al paso a, hasta que se termine el archivo.
-*/
 
 int main(int argc, char **argv){
     // Check if the args recieved from the command line are correct
@@ -28,7 +21,6 @@ int main(int argc, char **argv){
     int portNum = atoi(argv[3]), clientSock;
     struct sockaddr_in clientSocketAddress;
     socklen_t socketSize = sizeof(struct sockaddr_in);
-    char recievedMessage[MESSAGE_LEN];
 
     // Create the socket
     clientSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -51,13 +43,54 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
 
-    //Open file
-    FILE* clientFile = fopen(argv[1], "r");
-    if(clientFile == NULL){
+    //Open files
+    FILE* lowecaseFile = fopen(argv[1], "r");
+    if(lowecaseFile == NULL){
         perror("Erro ao abrir o arquivo\n");
         exit(EXIT_FAILURE);
     }
-    char buffer[MESSAGE_LEN];
+    char uFileName[20];
+    for(int i = 0; i < sizeof(argv); i++)
+            uFileName[i] = toupper(argv[1][i]);
 
+    FILE* uppercaseFile = fopen(uFileName, "w");
+    if(uppercaseFile == NULL){
+        perror("Erro ao abrir o arquivo\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Send message to server
+    char buffer[MESSAGE_LEN];
+    ssize_t totalBytesSent = 0;
+    ssize_t totalBytesReceived = 0;
+    while(fgets(buffer, sizeof(buffer), lowecaseFile) != NULL){
+        ssize_t bytesSent = send(clientSock, buffer, strlen(buffer) + 1, 0);
+        if(bytesSent < 0){
+            perror("Error sending message to server\n");
+            exit(EXIT_FAILURE);
+        }
+        totalBytesSent += bytesSent;
+        //printf("Message sent: %s\n", buffer);
+        //printf("BytesSent: %ld\n", bytesSent);
+        sleep(1);
+
+        //Receive message from server (in uppercase)
+        char recvMessage[MESSAGE_LEN];
+        ssize_t bytesReceived = recv(clientSock, recvMessage, sizeof(recvMessage), 0);
+        if(bytesReceived < 0){
+            perror("Error receiving message from server\n");
+            exit(EXIT_FAILURE);
+        }
+        recvMessage[bytesReceived] = '\0';
+        totalBytesReceived += bytesReceived;
+        fprintf(uppercaseFile, "%s\n", recvMessage);
+    }
+    // Comprobation printfs
+    //printf("Bytes sent: %ld\n", totalBytesSent);
+    //printf("Bytes received: %ld\n", totalBytesReceived);
+
+    fclose(lowecaseFile);
+    fclose(uppercaseFile);
+    close(clientSock);
     return 0;
 }

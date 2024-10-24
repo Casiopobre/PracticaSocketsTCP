@@ -6,8 +6,9 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <ctype.h>
 #define PETITIONS_NUM 10
-#define a 10
+#define MESSAGE_LEN 1024
 
 int main(int argc, char **argv){
     // Check if the args received from the command line are correct
@@ -39,36 +40,65 @@ int main(int argc, char **argv){
     }
     char serverIP[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &serverSocketAddress.sin_addr, serverIP, INET_ADDRSTRLEN);
-    printf("\n~~ Server IP: %s", serverIP);
-    printf("\n~~ Server Port: %d\n", portNum);
+    //printf("\n~~ Server IP: %s", serverIP);
+    //printf("\n~~ Server Port: %d\n", portNum);
 
     // Set socket as passive so it can listen petitions
     if(listen(serverSock, PETITIONS_NUM) != 0){
         perror("\nUnable to set socket as passive\n");
         exit(EXIT_FAILURE);
     }
-
-     while(1){
-        // Accept connection
-        connectionSock = accept(serverSock, (struct sockaddr *)&clientSocketAddress, &socketSize);
-        if(connectionSock == -1){
-            perror("\nUnable to accept connection\n");
-            exit(EXIT_FAILURE);
-        }
-        char clientIP[INET_ADDRSTRLEN];
+    // Accept connection
+    connectionSock = accept(serverSock, (struct sockaddr *)&clientSocketAddress, &socketSize);
+    if(connectionSock == -1){
+        perror("\nUnable to accept connection\n");
+        exit(EXIT_FAILURE);
+    }
+    char clientIP[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &clientSocketAddress.sin_addr, clientIP, INET_ADDRSTRLEN);
         int clientPort = ntohs(clientSocketAddress.sin_port);
         printf("\n~~ Client IP: %s", clientIP);
         printf("\n~~ Client Port: %d\n", clientPort);
 
+     while(1){
+        // Receive message from client
+        char receivedMessage[MESSAGE_LEN];
+        ssize_t totalBytesReceived = 0;
+        ssize_t bytesReceived = recv(connectionSock, receivedMessage, sizeof(receivedMessage), 0);
+        if(bytesReceived < 0){
+            perror("Error receiving message from client\n");
+            exit(EXIT_FAILURE);
+        } else if (bytesReceived == 0){
+            perror("Client Disconnected\n");
+            exit(EXIT_FAILURE);
+        }
+        receivedMessage[bytesReceived] = '\0';
+        //printf("ReceivedBytes: %ld\n", bytesReceived);
+        //printf("Received Message: %s\n", receivedMessage);
+
+        totalBytesReceived += bytesReceived;
+        // Transform to uppercase
+        for(int i = 0; i < bytesReceived; i++)
+            receivedMessage[i] = toupper(receivedMessage[i]);
+
         // Send the message to the client
-        
+        //printf("SentMessage: %s\n", receivedMessage);
+        ssize_t totalBytesSent = 0;
+        ssize_t bytesSent = send(connectionSock, receivedMessage, bytesReceived, 0);
+        if(bytesSent < 0){
+            perror("Error sending message to client\n");
+            exit(EXIT_FAILURE);
+        }
+        totalBytesSent += bytesSent;
+
+        //Comprobation printfs
+        //printf("Bytes sent: %ld\n", totalBytesSent);
+        //printf("Bytes received: %ld\n", totalBytesReceived);
 
         // Close the sockets
-        close(connectionSock);
+        //close(connectionSock);
     }
     close(serverSock);
-
 
     return 1;
 }
