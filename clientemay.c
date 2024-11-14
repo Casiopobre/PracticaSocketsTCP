@@ -72,7 +72,6 @@ int main(int argc, char **argv){
         totalBytesSent += bytesSent;
         //printf("Message sent: %s\n", buffer);
         //printf("BytesSent: %ld\n", bytesSent);
-        sleep(1);
 
         //Receive message from server (in uppercase)
         char recvMessage[MESSAGE_LEN];
